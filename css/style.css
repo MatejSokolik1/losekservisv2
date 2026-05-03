@@ -97,38 +97,80 @@ a { color:inherit; text-decoration:none; }
 ══════════════════════════════════════════════════════════════ */
 .hero {
   min-height:100svh; position:relative;
-  display:flex; flex-direction:column; justify-content:center;
-  padding:10rem 3.5rem 8rem;
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  align-items:center;
+  padding:9rem 3.5rem 8rem;
   overflow:hidden;
+  gap: 2rem;
 }
 
-/* Canvas ember particles */
+/* Canvas ember particles – za vším ostatním, nízká opacity */
 #ember-canvas {
   position:absolute; inset:0; z-index:0;
-  pointer-events:none; opacity:.7;
+  pointer-events:none; opacity:.35;
 }
 
 /* Mesh gradient */
 .hero-mesh {
   position:absolute; inset:0; z-index:0;
   background:
-    radial-gradient(ellipse 55% 65% at 85% 40%, rgba(255,77,0,.22) 0%, transparent 65%),
-    radial-gradient(ellipse 35% 45% at 15% 70%, rgba(255,149,0,.1) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 50% 100%, rgba(255,77,0,.08) 0%, transparent 70%);
+    radial-gradient(ellipse 60% 70% at 75% 50%, rgba(255,77,0,.15) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 50% at 10% 80%, rgba(255,149,0,.07) 0%, transparent 60%);
+}
+
+/* Tmavý overlay přes canvas/mesh aby texty byly vždy čitelné */
+.hero-text-guard {
+  position:absolute; left:0; top:0; bottom:0; width:60%;
+  background:linear-gradient(to right, rgba(8,8,8,.92) 55%, transparent 100%);
+  z-index:1; pointer-events:none;
 }
 
 /* Grain overlay */
 .hero-grain {
-  position:absolute; inset:0; z-index:1; opacity:.03;
+  position:absolute; inset:0; z-index:1; opacity:.025;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
   background-repeat:repeat;
 }
 
-.hero-content { position:relative; z-index:2; max-width:1100px; }
+/* Levý sloupec – text */
+.hero-content {
+  position:relative; z-index:3;
+}
+
+/* Pravý sloupec – ilustrace */
+.hero-visual {
+  position:relative; z-index:2;
+  display:flex; align-items:center; justify-content:center;
+  height:100%;
+}
+.hero-visual svg {
+  width:min(420px, 90%); height:auto;
+  filter:drop-shadow(0 0 60px rgba(255,77,0,.25))
+         drop-shadow(0 0 120px rgba(255,77,0,.1));
+  animation:float 6s ease-in-out infinite;
+}
+@keyframes float {
+  0%,100%{ transform:translateY(0) rotate(-1deg); }
+  50%{ transform:translateY(-18px) rotate(1deg); }
+}
+/* Ember glow pod hasičákem */
+.hero-visual::after {
+  content:''; position:absolute; bottom:5%;
+  left:50%; transform:translateX(-50%);
+  width:60%; height:80px;
+  background:radial-gradient(ellipse 100% 100%, rgba(255,77,0,.35), transparent 70%);
+  filter:blur(20px); z-index:-1;
+  animation:glow-pulse 3s ease-in-out infinite;
+}
+@keyframes glow-pulse {
+  0%,100%{ opacity:.6; transform:translateX(-50%) scaleX(1); }
+  50%{ opacity:1; transform:translateX(-50%) scaleX(1.15); }
+}
 
 .hero-eyebrow {
   display:flex; align-items:center; gap:1rem;
-  margin-bottom:2.5rem;
+  margin-bottom:2rem;
 }
 .hero-eyebrow-line {
   width:36px; height:1px; background:var(--ember);
@@ -141,20 +183,24 @@ a { color:inherit; text-decoration:none; }
 
 .hero-h1 {
   font-family:var(--font-disp);
-  font-size:clamp(5.5rem, 13vw, 13rem);
+  font-size:clamp(4.5rem, 9vw, 10rem);
   line-height:.88; letter-spacing:.01em;
-  margin-bottom:3rem;
+  margin-bottom:2.2rem;
+  /* textový stín pro čitelnost na jakémkoliv pozadí */
+  text-shadow:0 2px 30px rgba(0,0,0,.8);
 }
 .hero-h1 .line-accent { color:var(--ember); }
 .hero-h1 .line-outline {
-  -webkit-text-stroke:2px rgba(242,237,228,.25);
+  -webkit-text-stroke:2px rgba(242,237,228,.35);
   color:transparent;
 }
 
 .hero-sub {
-  font-size:1.05rem; color:#8A847C;
-  max-width:480px; line-height:1.8; margin-bottom:3.5rem;
+  font-size:1rem; color:#AAA49C;
+  max-width:460px; line-height:1.85; margin-bottom:3rem;
   font-weight:300;
+  /* lehký backdrop pro jistotu */
+  text-shadow:0 1px 12px rgba(0,0,0,.9);
 }
 
 .hero-actions { display:flex; gap:1.2rem; flex-wrap:wrap; align-items:center; }
@@ -193,9 +239,11 @@ a { color:inherit; text-decoration:none; }
 
 /* Hero stats bar */
 .hero-stats {
-  position:absolute; bottom:0; left:0; right:0; z-index:2;
+  position:absolute; bottom:0; left:0; right:0; z-index:4;
   display:grid; grid-template-columns:repeat(4,1fr);
   border-top:1px solid var(--border);
+  background:rgba(8,8,8,.7);
+  backdrop-filter:blur(8px);
 }
 .hero-stat {
   padding:1.8rem 3.5rem;
@@ -695,7 +743,9 @@ a { color:inherit; text-decoration:none; }
 @media (max-width:900px) {
   .nav { padding:1rem 1.5rem; }
   .nav-links { display:none; }
-  .hero { padding:8rem 1.5rem 10rem; }
+  .hero { padding:8rem 1.5rem 10rem; grid-template-columns:1fr; }
+  .hero-visual { display:none; }
+  .hero-text-guard { width:100%; }
   .hero-stats { grid-template-columns:repeat(2,1fr); }
   .hero-stat { padding:1.4rem 1.5rem; }
   .services { padding:6rem 1.5rem; }
